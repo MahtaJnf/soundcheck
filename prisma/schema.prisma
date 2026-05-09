@@ -13,4 +13,91 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  bookings  Booking[] // 1 user can have many bookings
+}
+model Venue{
+  id String @id @default(uuid())
+  name String
+  address String
+  capacity Int
+  seatMap Json?
+  events Event[] // 1 venue can host many events
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Event{
+  id String @id @default(uuid())
+  title String
+  description String @db.Text // long text for event description
+  date DateTime
+  price Float
+  tags String[] // array of tags for categorization
+  imageUrl String? // optional image URL for the event
+  venueId String
+  venue  Venue @relation(fields: [venueId], references: [id]) // relation to Venue
+  seats Seat[] // 1 event can have many seats
+  // embedding Unsupported("vector(1536)")? // TODO: Add in Phase 4 when pgvector is enabled
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([venueId]) // index for faster queries by venue
+  @@index([date]) // index for faster queries by date
+}
+enum SeatStatus{
+  AVAILABLE
+  HELD
+  BOOKED
+}
+model Seat {
+  id String @id @default(uuid())
+  seatNumber String
+  row String
+  section String
+  status SeatStatus @default(AVAILABLE)
+  eventId String
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade) // relation to Event
+  bookings Booking[] // history of bookings for this seat
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([eventId, section, row, seatNumber]) // can't have duplicate seats per event
+  @@index([eventId, status]) //  Fast lookup for "available seats for event X"
+}
+enum BookingStatus{
+  HELD // reserved, pending payment
+  PAID // confirmed booking
+  CANCELLED // refunded or expired
+}
+model Booking{
+  id String @id @default(uuid())
+  holdToken String? @unique
+  holdExpiresAt DateTime?
+  status BookingStatus @default(HELD)
+  userId String
+  user User @relation(fields: [userId], references: [id]) // relation to
+  seatId String
+  seat Seat @relation(fields: [seatId], references: [id]) // relation to
+  payment Payment? // optional relation to Payment, only exists if status is PAID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId]) // index for faster queries by user
+  @@index([seatId]) // index for faster queries by seat
+  @@index([status]) // index for faster queries by status
+  @@index([holdToken]) // index for faster queries by hold token
+}
+enum PaymentStatus{
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+model Payment{
+  id String @id @default(uuid())
+  stripePaymentId String @unique
+  amount Float
+  currency String @default("USD") 
+  status PaymentStatus @default(PENDING)
+  bookingId String @unique
+  booking Booking @relation(fields: [bookingId], references: [id]) // relation to Booking
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([stripePaymentId])
 }
