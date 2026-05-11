@@ -1,41 +1,54 @@
 # Soundcheck Development Roadmap
 
-**Last Updated:** 2026-05-07
-**Current Phase:** Phase 1 (In Progress)
+**Last Updated:** 2026-05-10
+**Current Phase:** Phase 1 (Nearly Complete - Seeding Remaining)
 
 ---
 
 ## Phase 1: Foundations + Domain Model ✅ (Partial)
 
 ### Completed ✅
+
 - [x] NestJS scaffold
 - [x] Docker Compose (Postgres + Redis)
-- [x] Prisma setup with initial User model
+- [x] Prisma setup with complete domain model (User, Event, Venue, Seat, Booking, Payment)
 - [x] PrismaModule with lifecycle management
 - [x] HealthModule with database connectivity check
 - [x] Project README
+- [x] JWT Authentication system (register, login, protected routes)
+- [x] Password hashing with bcrypt
+- [x] JwtStrategy and JwtAuthGuard
+- [x] @CurrentUser decorator
+
+### What We Built This Session 🎉
+
+**Complete JWT Authentication System:**
+- ✅ User registration with bcrypt password hashing (10 salt rounds)
+- ✅ Login endpoint with JWT token generation (24h expiration)
+- ✅ JwtStrategy for token validation (validates signature, loads user from DB)
+- ✅ JwtAuthGuard for protecting routes
+- ✅ @CurrentUser decorator for type-safe user extraction
+- ✅ Protected `/auth/profile` endpoint (tested and working!)
+
+**Key Files Created:**
+- `src/auth/auth.service.ts` - Registration & login logic
+- `src/auth/auth.controller.ts` - HTTP endpoints
+- `src/auth/jwt.strategy.ts` - Token validation strategy
+- `src/auth/guards/jwt-auth.guard.ts` - Route protection
+- `src/auth/decorators/current-user.decorator.ts` - User extraction
+- `src/auth/dto/register.dto.ts` & `login.dto.ts` - Request validation
+
+**Testing Completed:**
+- ✅ User registration (POST /auth/register)
+- ✅ User login with JWT (POST /auth/login)
+- ✅ Protected route access (GET /auth/profile)
+- ✅ Verified password hashing in Prisma Studio
+- ✅ Tested 401 responses for invalid/missing tokens
 
 ### Next Steps 🔨
 
-**1. Complete Prisma Schema (30-45 min)**
-- [ ] Add Event model (title, description, date, venue, price, tags, embedding)
-- [ ] Add Venue model (name, address, capacity, seatMap)
-- [ ] Add Seat model (seatNumber, row, section, eventId, status: AVAILABLE | HELD | BOOKED)
-- [ ] Add Booking model (userId, seatId, status: HELD | PAID | CANCELLED, holdExpiresAt, holdToken)
-- [ ] Add Payment model (bookingId, stripePaymentIntentId, amount, status)
-- [ ] Create relationships between models
-- [ ] Run migration: `npx prisma migrate dev --name add-domain-models`
+**3. Seed Database (15-20 min)** ⭐ Next Task
 
-**2. Implement JWT Authentication (45-60 min)**
-- [ ] Install dependencies: `npm install @nestjs/jwt @nestjs/passport passport-jwt bcrypt @types/bcrypt`
-- [ ] Create AuthModule: `nest g module auth && nest g service auth && nest g controller auth`
-- [ ] Implement JwtStrategy and JwtAuthGuard
-- [ ] Add `/auth/register` endpoint (hash password with bcrypt)
-- [ ] Add `/auth/login` endpoint (return JWT token)
-- [ ] Create `@CurrentUser()` decorator for extracting user from request
-- [ ] Add JWT_SECRET to .env
-
-**3. Seed Database (15-20 min)**
 - [ ] Create `prisma/seed.ts` with sample events, venues, and seats
 - [ ] Add seed script to package.json: `"seed": "ts-node prisma/seed.ts"`
 - [ ] Run: `npm run seed`
@@ -47,6 +60,7 @@
 **Timeline:** 4-6 hours
 
 ### 4. Set up Redis for Seat Holds (20-30 min)
+
 - [ ] Install: `npm install ioredis @nestjs/ioredis`
 - [ ] Create RedisModule: `nest g module redis && nest g service redis`
 - [ ] Configure RedisService with ioredis client
@@ -54,6 +68,7 @@
 - [ ] Add REDIS_URL to .env (already exists)
 
 ### 5. Implement Seat Hold Logic (45-60 min)
+
 - [ ] Create BookingsModule: `nest g module bookings && nest g service bookings && nest g controller bookings`
 - [ ] POST `/bookings/hold` endpoint
   - Check seat availability in Postgres
@@ -63,6 +78,7 @@
 - [ ] Background cleanup (optional - Redis TTL handles expiry)
 
 ### 6. Implement Booking with Row-Level Locking (60-90 min)
+
 - [ ] POST `/bookings/book` endpoint
   - Validate holdToken exists in Redis
   - Start Postgres transaction
@@ -76,6 +92,7 @@
 - [ ] Add proper error handling and rollback
 
 ### 7. Write ADR-001: Concurrency Strategy (20-30 min)
+
 - [ ] Create `docs/adr/` directory
 - [ ] Write `001-concurrency-control.md`
   - Problem: Race condition on last seat
@@ -85,6 +102,7 @@
   - Alternatives considered: Optimistic locking, queue-based
 
 ### 8. Test Concurrency (30-45 min)
+
 - [ ] Install testing dependencies if needed
 - [ ] Write integration test simulating 2 concurrent hold requests
 - [ ] Write integration test simulating 2 concurrent book requests
@@ -98,6 +116,7 @@
 **Timeline:** 4-5 hours
 
 ### 9. Stripe Integration
+
 - [ ] Install: `npm install stripe`
 - [ ] Create PaymentsModule
 - [ ] POST `/payments/create-intent` endpoint
@@ -107,6 +126,7 @@
 - [ ] Update Booking status to PAID
 
 ### 10. Idempotency Middleware
+
 - [ ] Create IdempotencyMiddleware
 - [ ] Hash request body for idempotency key
 - [ ] Store in Redis with TTL (24 hours)
@@ -114,6 +134,7 @@
 - [ ] Apply to booking + payment endpoints
 
 ### 11. Write ADR-002: Idempotency Design
+
 - [ ] Document why idempotency matters (retry storms, double-charges)
 - [ ] Explain hash-based key generation
 - [ ] Redis as cache layer
@@ -126,17 +147,20 @@
 **Timeline:** 5-6 hours
 
 ### 12. pgvector Setup
+
 - [ ] Enable pgvector extension in Postgres
 - [ ] Add embedding column to Event model (vector type)
 - [ ] Create vector index
 
 ### 13. Embeddings Pipeline
+
 - [ ] Install: `npm install @anthropic-ai/sdk`
 - [ ] Create embedding generation script
 - [ ] Generate embeddings for existing events
 - [ ] Background job for new events
 
 ### 14. Concierge Endpoint
+
 - [ ] Create ConciergeModule
 - [ ] POST `/concierge/ask` endpoint
 - [ ] Embed user question
@@ -145,6 +169,7 @@
 - [ ] Handle streaming properly with SSE
 
 ### 15. Write ADR-003: RAG vs Fine-tuning
+
 - [ ] Why RAG over fine-tuning
 - [ ] Freshness and cost tradeoffs
 - [ ] pgvector performance considerations
@@ -156,6 +181,7 @@
 **Timeline:** 3-4 hours
 
 ### 16. Deployment
+
 - [ ] Create Railway account
 - [ ] Configure Railway Postgres + Redis
 - [ ] Add environment variables
@@ -164,6 +190,7 @@
 - [ ] Test production endpoints
 
 ### 17. Documentation
+
 - [ ] Create architecture diagram (system design)
 - [ ] Add API documentation with Swagger/OpenAPI
 - [ ] Polish README with live demo link
@@ -171,6 +198,7 @@
 - [ ] Update roadmap checkboxes
 
 ### 18. CI/CD
+
 - [ ] Create GitHub Actions workflow
 - [ ] Run tests on PR
 - [ ] Auto-deploy to Railway on merge to main
@@ -207,14 +235,16 @@ npm run seed
 ## Environment Variables Checklist
 
 Current `.env`:
+
 ```
 PORT=3000
 DATABASE_URL="postgresql://soundcheck:soundcheck@localhost:5432/soundcheck"
 REDIS_URL="redis://localhost:6379"
+JWT_SECRET="your-secret-key-here"
 ```
 
 TODO - Add in future phases:
-- `JWT_SECRET` (Phase 1)
+
 - `STRIPE_SECRET_KEY` (Phase 3)
 - `STRIPE_WEBHOOK_SECRET` (Phase 3)
 - `ANTHROPIC_API_KEY` (Phase 4)
@@ -224,6 +254,7 @@ TODO - Add in future phases:
 ## Notes for Next Session
 
 **Start here:**
+
 1. Review this roadmap
 2. Continue from Phase 1, step 1 (Complete Prisma Schema)
 3. Work through tasks sequentially
@@ -231,12 +262,14 @@ TODO - Add in future phases:
 5. Commit after each major milestone
 
 **Learning approach:**
+
 - Ask Claude to explain WHY before implementing
 - Understand the tradeoffs
 - Don't just copy-paste
 - Write ADRs to document decisions
 
 **Session goals:**
+
 - Phase 1: Get domain model + auth working (foundation for everything)
 - Phase 2: Solve the concurrency problem (the core engineering challenge)
 - Phase 3: Handle payments safely (real-world integration)
@@ -245,4 +278,4 @@ TODO - Add in future phases:
 
 ---
 
-**Last Status:** Docker ✅ | Prisma ✅ | Health Check ✅ | Auth ⏳ | Domain Model ⏳
+**Last Status:** Docker ✅ | Prisma ✅ | Health Check ✅ | Domain Model ✅ | JWT Auth ✅ | Seeding ⏳
