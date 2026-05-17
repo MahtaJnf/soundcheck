@@ -1,11 +1,11 @@
 # Soundcheck Development Roadmap
 
 **Last Updated:** 2026-05-10
-**Current Phase:** Phase 1 (Nearly Complete - Seeding Remaining)
+**Current Phase:** Phase 2 In Progress (Task 4 ✅ | Task 5 Next)
 
 ---
 
-## Phase 1: Foundations + Domain Model ✅ (Partial)
+## Phase 1: Foundations + Domain Model ✅ COMPLETE
 
 ### Completed ✅
 
@@ -19,6 +19,7 @@
 - [x] Password hashing with bcrypt
 - [x] JwtStrategy and JwtAuthGuard
 - [x] @CurrentUser decorator
+- [x] Database seeding (2 venues, 3 events, 450 seats)
 
 ### What We Built This Session 🎉
 
@@ -45,37 +46,61 @@
 - ✅ Verified password hashing in Prisma Studio
 - ✅ Tested 401 responses for invalid/missing tokens
 
-### Next Steps 🔨
+**Database Seeding:**
+- ✅ Created seed script with ts-node
+- ✅ 2 Venues: The Wiltern, Hollywood Bowl
+- ✅ 3 Events: Taylor Swift, The Weeknd, Billie Eilish
+- ✅ 450 Seats: 3 sections × 5 rows × 10 seats per event
+- ✅ All seats status: AVAILABLE (ready for booking)
 
-**3. Seed Database (15-20 min)** ⭐ Next Task
+### 🎉 Phase 1 Achievement Summary
 
-- [ ] Create `prisma/seed.ts` with sample events, venues, and seats
-- [ ] Add seed script to package.json: `"seed": "ts-node prisma/seed.ts"`
-- [ ] Run: `npm run seed`
+**What We Built:**
+- Complete authentication system with JWT
+- Full domain model for concert booking
+- Database seeding with realistic data
+- Health monitoring endpoint
+- Type-safe architecture with Prisma + NestJS
+
+**Lines of Code:** ~1000+ across 25+ files
+**Time Invested:** ~3-4 hours (learning-focused)
+**Interview Value:** ⭐⭐⭐ Foundation complete, now ready for the hard problems
 
 ---
 
-## Phase 2: Concurrency + Booking Core 🚧 (Next)
+## Phase 2: Concurrency + Booking Core 🚧 (In Progress)
 
 **Timeline:** 4-6 hours
+**Status:** Task 4 Complete ✅ | Starting Task 5 Next Session
 
-### 4. Set up Redis for Seat Holds (20-30 min)
+### 4. Set up Redis for Seat Holds ✅ COMPLETE (20-30 min)
 
-- [ ] Install: `npm install ioredis @nestjs/ioredis`
-- [ ] Create RedisModule: `nest g module redis && nest g service redis`
-- [ ] Configure RedisService with ioredis client
-- [ ] Wire into app.module imports
-- [ ] Add REDIS_URL to .env (already exists)
+- [x] Install: `npm install ioredis`
+- [x] Create RedisModule: `nest g module redis && nest g service redis`
+- [x] Configure RedisService with ioredis client
+- [x] Implemented seat hold methods (setSeatHold, getSeatHold, deleteSeatHold, verifyHoldToken)
+- [x] Added lifecycle management (onModuleInit, onModuleDestroy)
+- [x] Exported RedisService from RedisModule
+- [x] Verified Redis connection (✅ Redis connected)
 
-### 5. Implement Seat Hold Logic (45-60 min)
+### 5. Implement Seat Hold Logic ⭐ START HERE NEXT SESSION (45-60 min)
 
+**What you'll build:**
+A seat reservation system where users can "hold" a seat for 10 minutes before completing their booking.
+
+**Tasks:**
 - [ ] Create BookingsModule: `nest g module bookings && nest g service bookings && nest g controller bookings`
-- [ ] POST `/bookings/hold` endpoint
-  - Check seat availability in Postgres
-  - Create Redis lock with SETNX: `seat-hold:{seatId}` (TTL: 600s)
-  - Return holdToken (UUID)
-- [ ] GET `/bookings/hold/:token` to check hold status
-- [ ] Background cleanup (optional - Redis TTL handles expiry)
+- [ ] Import RedisModule and PrismaModule into BookingsModule
+- [ ] Build BookingsService with hold logic:
+  - Verify seat exists and is AVAILABLE in Postgres
+  - Generate unique holdToken (UUID)
+  - Create Redis lock: `seat-hold:{seatId}` with 600s TTL
+  - Return holdToken to client
+- [ ] Create POST `/bookings/hold` endpoint in controller
+  - Body: `{ seatId: string }`
+  - Response: `{ holdToken: string, expiresAt: Date }`
+- [ ] Optional: GET `/bookings/hold/:token` to check hold status
+- [ ] Test in Postman: Hold a seat, verify in Redis, wait for expiry
 
 ### 6. Implement Booking with Row-Level Locking (60-90 min)
 
@@ -278,4 +303,7 @@ TODO - Add in future phases:
 
 ---
 
-**Last Status:** Docker ✅ | Prisma ✅ | Health Check ✅ | Domain Model ✅ | JWT Auth ✅ | Seeding ⏳
+**Last Status:** Phase 1 ✅ COMPLETE | Phase 2 Task 4 ✅ COMPLETE (Redis Setup)
+
+**🚀 Next Session Starts Here:** Phase 2, Task 5 - Seat Hold Logic
+- Search for "⭐ START HERE NEXT SESSION" in this file
